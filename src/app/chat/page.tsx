@@ -168,7 +168,7 @@ export default function Chat() {
         <div className="bg-white sm:rounded-t-md border-t sm:border shadow-lg">
           <div className="p-4">
             <div className="flex flex-row gap-3 p-4 border rounded-t-md">
-              <div>
+              {/* <div>
                 <DropdownMenu>
                   <DropdownMenuTrigger className="outline-none">
                     <div className="h-8 w-8 p-0 rounded-full shadow-sm border flex items-center justify-center">
@@ -184,7 +184,7 @@ export default function Chat() {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-              </div>
+              </div> */}
               <AutosizeTextarea
                 className="flex-1 outline-none border-0"
                 placeholder="Type here ..."
