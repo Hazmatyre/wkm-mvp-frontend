@@ -4,7 +4,7 @@ export default function Home() {
   return (
     <main className="flex flex-col min-h-screen items-center justify-center p-24">
       <div className="font-bold">
-        <Link href="https://github.com/deathg0d/next-chat" target="_blank">
+        <Link href="https://github.com/Hazmatyre/wkm-mvp-frontend" target="_blank">
           deathg0d/next-chat
         </Link>
       </div>
