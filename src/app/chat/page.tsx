@@ -19,6 +19,8 @@ import { PlusIcon } from "@radix-ui/react-icons";
 import { KeyboardEvent, useRef, useState } from "react";
 import Link from "next/link";
 import clsx from "clsx";
+import { Input } from "@/components/ui/input";
+import { WorkmindClient } from "@workmind/client";
 
 interface Message {
   message: String;
@@ -31,6 +33,36 @@ export default function Chat() {
   const [userInput, setUserInput] = useState("");
   const [conversation, setConversation] = useState<Message[]>([]);
   const [connected, setConnected] = useState<boolean>(false)
+  const [sessionId, setSessionId] = useState<string>()
+  const [agentId, setAgentId] = useState<string>()
+
+  const client = new WorkmindClient({
+    baseUrl: "https://wm-gateway-613708618361.us-central1.run.app",
+    agentId: "agents/adder.json"
+  });
+
+  const handleConnect = async () => {
+    try {
+      await client.handshake()
+      console.log("Session:", client.sessionId);
+
+      client.on("ui", (msg) => {
+        // UI events from worker activities
+        const text = msg?.payload?.message;
+        if (text) addMessage({ message: text, type: "bot" });
+      });
+
+      client.on("error", (err) => {
+        console.error("SSE error", err);
+        addMessage({ message: "[connection error]", type: "bot" });
+      });
+
+      client.startEventStream();
+    } catch (err) {
+      console.error("Handshake failed", err);
+      addMessage({ message: "Handshake failed. Check console.", type: "bot" });
+    }
+  }
 
   const addMessage = (message: Message) => {
     setConversation((oldArray: Message[]) => [...oldArray, message]);
@@ -78,7 +110,7 @@ export default function Chat() {
   return (
     <main className="h-screen flex flex-col bg-muted/50">
       <div>
-        <div className="bg-white h-10 flex gap-3 items-center px-3">
+        <div className="bg-white py-2 flex gap-3 justify-between items-center px-3">
           <div>
             <Link href="/">
               <svg
@@ -99,6 +131,15 @@ export default function Chat() {
             </Link>
           </div>
 
+          <div className="flex w-full flex-wrap gap-2">
+            <Input className="w-auto max-w-60" type="text" placeholder="Session ID"></Input>
+            <Input className="w-auto max-w-60" type="text" placeholder="Agent ID" defaultValue={"agents/adder.json"}></Input>
+            <div className="gap-x-2 flex">
+              <Button onClick={handleConnect}>Connect</Button>
+              <Button disabled={!connected}>Disconnect</Button>
+            </div>
+          </div>
+
           <div className="flex-1"></div>
           <DropdownMenu>
             <DropdownMenuTrigger className="outline-none">
@@ -108,12 +149,9 @@ export default function Chat() {
               </Avatar>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" alignOffset={-5}>
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuLabel>Settings</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Profile</DropdownMenuItem>
-              <DropdownMenuItem>Billing</DropdownMenuItem>
-              <DropdownMenuItem>Team</DropdownMenuItem>
-              <DropdownMenuItem>Subscription</DropdownMenuItem>
+              <DropdownMenuItem>Change Endpoint</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -139,8 +177,8 @@ export default function Chat() {
                 )}
                 <div
                   className={`max-w-[60%] flex flex-col ${msg.type === "bot"
-                      ? "bg-white mr-auto"
-                      : "text-white bg-black ml-auto"
+                    ? "bg-white mr-auto"
+                    : "text-white bg-black ml-auto"
                     } items-start gap-2 rounded-lg border p-2 text-left text-sm transition-all whitespace-pre-wrap`}
                 >
                   {msg.message}
@@ -197,10 +235,9 @@ export default function Chat() {
                 disabled={!connected}
               />
               <Button
-                onClick={() => sendMessage()} 
+                onClick={() => sendMessage()}
                 className={clsx("h-8 w-8 p-0 cursor")}
-                disabled={connected}
-                variant={!connected ? "disabled" : 'default'}
+                disabled={!connected}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
