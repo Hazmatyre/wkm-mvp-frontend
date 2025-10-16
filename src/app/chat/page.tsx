@@ -18,6 +18,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PlusIcon } from "@radix-ui/react-icons";
 import { KeyboardEvent, useRef, useState } from "react";
 import Link from "next/link";
+import clsx from "clsx";
 
 interface Message {
   message: String;
@@ -29,6 +30,7 @@ export default function Chat() {
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
   const [userInput, setUserInput] = useState("");
   const [conversation, setConversation] = useState<Message[]>([]);
+  const [connected, setConnected] = useState<boolean>(false)
 
   const addMessage = (message: Message) => {
     setConversation((oldArray: Message[]) => [...oldArray, message]);
@@ -96,6 +98,7 @@ export default function Chat() {
               </svg>
             </Link>
           </div>
+
           <div className="flex-1"></div>
           <DropdownMenu>
             <DropdownMenuTrigger className="outline-none">
@@ -124,7 +127,7 @@ export default function Chat() {
                 {msg.type === "bot" && (
                   <>
                     {conversation[i - 1] &&
-                    conversation[i - 1].type === "bot" ? (
+                      conversation[i - 1].type === "bot" ? (
                       <div className={`w-6 h-6`}></div>
                     ) : (
                       <Avatar className={`w-6 h-6 bg-gray-200`}>
@@ -135,18 +138,17 @@ export default function Chat() {
                   </>
                 )}
                 <div
-                  className={`max-w-[60%] flex flex-col ${
-                    msg.type === "bot"
+                  className={`max-w-[60%] flex flex-col ${msg.type === "bot"
                       ? "bg-white mr-auto"
                       : "text-white bg-black ml-auto"
-                  } items-start gap-2 rounded-lg border p-2 text-left text-sm transition-all whitespace-pre-wrap`}
+                    } items-start gap-2 rounded-lg border p-2 text-left text-sm transition-all whitespace-pre-wrap`}
                 >
                   {msg.message}
                 </div>
                 {msg.type === "user" && (
                   <>
                     {conversation[i - 1] &&
-                    conversation[i - 1].type === "user" ? (
+                      conversation[i - 1].type === "user" ? (
                       <div className={`w-6 h-6`}></div>
                     ) : (
                       <Avatar className={`w-6 h-6 bg-gray-200`}>
@@ -192,8 +194,14 @@ export default function Chat() {
                 onKeyDown={(e) => handleEnter(e)}
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
+                disabled={!connected}
               />
-              <Button onClick={() => sendMessage()} className="h-8 w-8 p-0">
+              <Button
+                onClick={() => sendMessage()} 
+                className={clsx("h-8 w-8 p-0 cursor")}
+                disabled={connected}
+                variant={!connected ? "disabled" : 'default'}
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 256 256"

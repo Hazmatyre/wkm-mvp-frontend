@@ -20,6 +20,9 @@ dependencies:
   '@radix-ui/react-slot':
     specifier: ^1.2.3
     version: 1.2.3(@types/react@19.0.0)(react@19.1.0)
+  '@workmind/client':
+    specifier: github:gordyclark/wm-typescript-sdk
+    version: github.com/gordyclark/wm-typescript-sdk/c80f9514484f72e89ad4996a1a48d86ed0fb4e00
   class-variance-authority:
     specifier: ^0.7.1
     version: 0.7.1
@@ -4144,3 +4147,9 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
     dev: true
+
+  github.com/gordyclark/wm-typescript-sdk/c80f9514484f72e89ad4996a1a48d86ed0fb4e00:
+    resolution: {commit: c80f9514484f72e89ad4996a1a48d86ed0fb4e00, repo: git+ssh://git@github.com/gordyclark/wm-typescript-sdk.git, type: git}
+    name: '@workmind/client'
+    version: 0.1.0
+    dev: false
