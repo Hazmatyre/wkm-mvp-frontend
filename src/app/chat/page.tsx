@@ -16,7 +16,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PlusIcon } from "@radix-ui/react-icons";
-import { KeyboardEvent, useRef, useState } from "react";
+import { KeyboardEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import clsx from "clsx";
 import { Input } from "@/components/ui/input";
@@ -24,7 +24,7 @@ import { WorkmindClient } from "@workmind/client";
 
 interface Message {
   message: String;
-  type: "bot" | "user";
+  type: "bot" | "user" | "status";
 }
 
 export default function Chat() {
@@ -33,35 +33,73 @@ export default function Chat() {
   const [userInput, setUserInput] = useState("");
   const [conversation, setConversation] = useState<Message[]>([]);
   const [connected, setConnected] = useState<boolean>(false)
+  const [connecting, setConnecting] = useState<boolean>(false)
   const [sessionId, setSessionId] = useState<string>()
   const [agentId, setAgentId] = useState<string>()
-
-  const client = new WorkmindClient({
+  const [client, setClient] = useState<WorkmindClient>(new WorkmindClient({
     baseUrl: "https://wm-gateway-613708618361.us-central1.run.app",
     agentId: "agents/adder.json"
-  });
+  }))
+
+  // Force state update based on client
+  useEffect(() => {
+    setSessionId(client.sessionId)
+    setAgentId(client.agentId)
+  }, [client.sessionId, client.agentId])
+
+  useEffect(() => {
+    const initialise = async () => {
+      if (!connecting) {
+        return
+      }
+      try {
+        await client.handshake()
+        addMessage({ message: "Connecting...", type: "status" });
+        setConnecting(false)
+        setConnected(true)
+
+        console.log("Session:", sessionId);
+        addMessage({ message: "Connected! Please give the bot some time to respond.", type: "status" });
+        addMessage({ message: `Session ID: ${sessionId}`, type: "status" });
+        console.log("Session:", client.sessionId);
+        // todo: some kind of message to note the chat is connected and will reply
+
+        client.startEventStream();
+      } catch (err) {
+        console.error("Handshake failed", err);
+        addMessage({ message: "Handshake failed. Check console.", type: "bot" });
+      }
+    }
+    initialise()
+    // return () => {
+    //   connection.disconnect();
+    // };
+  }, [connecting]);
+
+  // Register on effects once.
+  useEffect(() => {
+    client.on("ui", (msg) => {
+      // UI events from worker activities
+      const text = msg?.payload?.message;
+      if (text) addMessage({ message: text, type: "bot" });
+    });
+
+    client.on("error", (err) => {
+      console.error("SSE error", err);
+      addMessage({ message: "[connection error]", type: "bot" });
+    });
+  }, []);
 
   const handleConnect = async () => {
-    try {
-      await client.handshake()
-      console.log("Session:", client.sessionId);
+    setConnecting(true)
+  }
 
-      client.on("ui", (msg) => {
-        // UI events from worker activities
-        const text = msg?.payload?.message;
-        if (text) addMessage({ message: text, type: "bot" });
-      });
-
-      client.on("error", (err) => {
-        console.error("SSE error", err);
-        addMessage({ message: "[connection error]", type: "bot" });
-      });
-
-      client.startEventStream();
-    } catch (err) {
-      console.error("Handshake failed", err);
-      addMessage({ message: "Handshake failed. Check console.", type: "bot" });
-    }
+  const handleDisconnect = () => {
+    client.stopEventStream()
+    addMessage({ message: `Session terminated.`, type: "status" });
+    console.log("Disconnecting...");
+    console.log("Session disconnected.");
+    setConnected(false)
   }
 
   const addMessage = (message: Message) => {
@@ -85,18 +123,19 @@ export default function Chat() {
     }
   };
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
+    console.log("current sesssion id is: " + client.sessionId)
     if (userInput) {
       addMessage({ message: userInput, type: "user" });
+      const text = userInput.trim()
       setUserInput(""); // clear the textarea
 
-      // Here's is where you would put your request to the
-      // chat bot server, a reply from the server should be
-      // added using the function: addMessage({ message: "ok", type: "bot" });
-      // for now we will only simulate the reply
-      setTimeout(() => {
-        addMessage({ message: "ok", type: "bot" });
-      }, (Math.floor(Math.random() * (15 - 10 + 1)) + 10) * 100);
+      try {
+        await client.sendMessage("user_message", { text })
+      } catch (err) {
+        addMessage({ message: "Failed to send message.", type: "bot" })
+        console.error(err)
+      }
     }
   };
 
@@ -132,11 +171,30 @@ export default function Chat() {
           </div>
 
           <div className="flex w-full flex-wrap gap-2">
-            <Input className="w-auto max-w-60" type="text" placeholder="Session ID"></Input>
-            <Input className="w-auto max-w-60" type="text" placeholder="Agent ID" defaultValue={"agents/adder.json"}></Input>
+            <Input
+              className="w-auto max-w-60 disabled:cursor-not-allowed"
+              type="text"
+              placeholder="Session ID"
+              disabled={connected || connecting}
+            />
+            <Input
+              className="w-auto max-w-60 disabled:cursor-not-allowed"
+              type="text"
+              placeholder="Agent ID"
+              defaultValue={"agents/adder.json"}
+              disabled={connected || connecting}
+            />
             <div className="gap-x-2 flex">
-              <Button onClick={handleConnect}>Connect</Button>
-              <Button disabled={!connected}>Disconnect</Button>
+              <Button
+                disabled={connected || connecting}
+                onClick={handleConnect}
+              >
+                Connect</Button>
+              <Button
+                disabled={!connected}
+                onClick={handleDisconnect}
+              >
+                Disconnect</Button>
             </div>
           </div>
 
@@ -175,14 +233,20 @@ export default function Chat() {
                     )}
                   </>
                 )}
-                <div
-                  className={`max-w-[60%] flex flex-col ${msg.type === "bot"
-                    ? "bg-white mr-auto"
-                    : "text-white bg-black ml-auto"
-                    } items-start gap-2 rounded-lg border p-2 text-left text-sm transition-all whitespace-pre-wrap`}
-                >
-                  {msg.message}
-                </div>
+                {(msg.type === "bot" || msg.type === "user") &&
+                  <div
+                    className={`max-w-[60%] flex flex-col ${msg.type === "bot"
+                      ? "bg-white mr-auto"
+                      : "text-white bg-black ml-auto"
+                      } items-start gap-2 rounded-lg border p-2 text-left text-sm transition-all whitespace-pre-wrap`}
+                  >
+                    {msg.message}
+                  </div>}
+                {msg.type === "status" &&
+                  <div className=" p-1.5 text-xs text-center flex flex-col max-w-[60%] mx-auto">
+                    {msg.message}
+                  </div>
+                }
                 {msg.type === "user" && (
                   <>
                     {conversation[i - 1] &&
