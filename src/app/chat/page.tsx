@@ -67,7 +67,7 @@ export default function Chat() {
         client.startEventStream();
       } catch (err) {
         console.error("Handshake failed", err);
-        addMessage({ message: "Handshake failed. Check console.", type: "bot" });
+        addMessage({ message: "Handshake failed. Check console.", type: "status" });
       }
     }
     initialise()
@@ -86,7 +86,7 @@ export default function Chat() {
 
     client.on("error", (err) => {
       console.error("SSE error", err);
-      addMessage({ message: "[connection error]", type: "bot" });
+      addMessage({ message: "[connection error]: "+err, type: "status" });
     });
   }, []);
 
@@ -237,7 +237,7 @@ export default function Chat() {
                   <div
                     className={`max-w-[60%] flex flex-col ${msg.type === "bot"
                       ? "bg-white mr-auto"
-                      : "text-white bg-black ml-auto"
+                      : "text-chat-bot-foreground bg-chat-bot ml-auto"
                       } items-start gap-2 rounded-lg border p-2 text-left text-sm transition-all whitespace-pre-wrap`}
                   >
                     {msg.message}

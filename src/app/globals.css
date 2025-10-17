@@ -4,6 +4,10 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --color-chat-bot: var(--primary);
+  --color-chat-bot-foreground: var(--primary-foreground);
+  --color-chat-user: var(--background);
+  --color-chat-user-foreground: var(--foreground);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
