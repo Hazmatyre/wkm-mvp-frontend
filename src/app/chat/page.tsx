@@ -16,12 +16,15 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PlusIcon } from "@radix-ui/react-icons";
-import { KeyboardEvent, useRef, useState } from "react";
+import { KeyboardEvent, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import clsx from "clsx";
+import { Input } from "@/components/ui/input";
+import { WorkmindClient } from "@workmind/client";
 
 interface Message {
   message: String;
-  type: "bot" | "user";
+  type: "bot" | "user" | "status";
 }
 
 export default function Chat() {
@@ -29,6 +32,75 @@ export default function Chat() {
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
   const [userInput, setUserInput] = useState("");
   const [conversation, setConversation] = useState<Message[]>([]);
+  const [connected, setConnected] = useState<boolean>(false)
+  const [connecting, setConnecting] = useState<boolean>(false)
+  const [sessionId, setSessionId] = useState<string>()
+  const [agentId, setAgentId] = useState<string>()
+  const [client, setClient] = useState<WorkmindClient>(new WorkmindClient({
+    baseUrl: "https://wm-gateway-613708618361.us-central1.run.app",
+    agentId: "agents/adder.json"
+  }))
+
+  // Force state update based on client
+  useEffect(() => {
+    setSessionId(client.sessionId)
+    setAgentId(client.agentId)
+  }, [client.sessionId, client.agentId])
+
+  useEffect(() => {
+    const initialise = async () => {
+      if (!connecting) {
+        return
+      }
+      try {
+        await client.handshake()
+        addMessage({ message: "Connecting...", type: "status" });
+        setConnecting(false)
+        setConnected(true)
+
+        console.log("Session:", sessionId);
+        addMessage({ message: "Connected! Please give the bot some time to respond.", type: "status" });
+        addMessage({ message: `Session ID: ${sessionId}`, type: "status" });
+        console.log("Session:", client.sessionId);
+        // todo: some kind of message to note the chat is connected and will reply
+
+        client.startEventStream();
+      } catch (err) {
+        console.error("Handshake failed", err);
+        addMessage({ message: "Handshake failed. Check console.", type: "status" });
+      }
+    }
+    initialise()
+    // return () => {
+    //   connection.disconnect();
+    // };
+  }, [connecting]);
+
+  // Register on effects once.
+  useEffect(() => {
+    client.on("ui", (msg) => {
+      // UI events from worker activities
+      const text = msg?.payload?.message;
+      if (text) addMessage({ message: text, type: "bot" });
+    });
+
+    client.on("error", (err) => {
+      console.error("SSE error", err);
+      addMessage({ message: "[connection error]: "+err, type: "status" });
+    });
+  }, []);
+
+  const handleConnect = async () => {
+    setConnecting(true)
+  }
+
+  const handleDisconnect = () => {
+    client.stopEventStream()
+    addMessage({ message: `Session terminated.`, type: "status" });
+    console.log("Disconnecting...");
+    console.log("Session disconnected.");
+    setConnected(false)
+  }
 
   const addMessage = (message: Message) => {
     setConversation((oldArray: Message[]) => [...oldArray, message]);
@@ -51,18 +123,19 @@ export default function Chat() {
     }
   };
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
+    console.log("current sesssion id is: " + client.sessionId)
     if (userInput) {
       addMessage({ message: userInput, type: "user" });
+      const text = userInput.trim()
       setUserInput(""); // clear the textarea
 
-      // Here's is where you would put your request to the
-      // chat bot server, a reply from the server should be
-      // added using the function: addMessage({ message: "ok", type: "bot" });
-      // for now we will only simulate the reply
-      setTimeout(() => {
-        addMessage({ message: "ok", type: "bot" });
-      }, (Math.floor(Math.random() * (15 - 10 + 1)) + 10) * 100);
+      try {
+        await client.sendMessage("user_message", { text })
+      } catch (err) {
+        addMessage({ message: "Failed to send message.", type: "bot" })
+        console.error(err)
+      }
     }
   };
 
@@ -76,7 +149,7 @@ export default function Chat() {
   return (
     <main className="h-screen flex flex-col bg-muted/50">
       <div>
-        <div className="bg-white h-10 flex gap-3 items-center px-3">
+        <div className="bg-white py-2 flex gap-3 justify-between items-center px-3">
           <div>
             <Link href="/">
               <svg
@@ -96,6 +169,35 @@ export default function Chat() {
               </svg>
             </Link>
           </div>
+
+          <div className="flex w-full flex-wrap gap-2">
+            <Input
+              className="w-auto max-w-60 disabled:cursor-not-allowed"
+              type="text"
+              placeholder="Session ID"
+              disabled={connected || connecting}
+            />
+            <Input
+              className="w-auto max-w-60 disabled:cursor-not-allowed"
+              type="text"
+              placeholder="Agent ID"
+              defaultValue={"agents/adder.json"}
+              disabled={connected || connecting}
+            />
+            <div className="gap-x-2 flex">
+              <Button
+                disabled={connected || connecting}
+                onClick={handleConnect}
+              >
+                Connect</Button>
+              <Button
+                disabled={!connected}
+                onClick={handleDisconnect}
+              >
+                Disconnect</Button>
+            </div>
+          </div>
+
           <div className="flex-1"></div>
           <DropdownMenu>
             <DropdownMenuTrigger className="outline-none">
@@ -105,12 +207,9 @@ export default function Chat() {
               </Avatar>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" alignOffset={-5}>
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuLabel>Settings</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Profile</DropdownMenuItem>
-              <DropdownMenuItem>Billing</DropdownMenuItem>
-              <DropdownMenuItem>Team</DropdownMenuItem>
-              <DropdownMenuItem>Subscription</DropdownMenuItem>
+              <DropdownMenuItem>Change Endpoint</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -124,7 +223,7 @@ export default function Chat() {
                 {msg.type === "bot" && (
                   <>
                     {conversation[i - 1] &&
-                    conversation[i - 1].type === "bot" ? (
+                      conversation[i - 1].type === "bot" ? (
                       <div className={`w-6 h-6`}></div>
                     ) : (
                       <Avatar className={`w-6 h-6 bg-gray-200`}>
@@ -134,19 +233,24 @@ export default function Chat() {
                     )}
                   </>
                 )}
-                <div
-                  className={`max-w-[60%] flex flex-col ${
-                    msg.type === "bot"
+                {(msg.type === "bot" || msg.type === "user") &&
+                  <div
+                    className={`max-w-[60%] flex flex-col ${msg.type === "bot"
                       ? "bg-white mr-auto"
-                      : "text-white bg-black ml-auto"
-                  } items-start gap-2 rounded-lg border p-2 text-left text-sm transition-all whitespace-pre-wrap`}
-                >
-                  {msg.message}
-                </div>
+                      : "text-chat-bot-foreground bg-chat-bot ml-auto"
+                      } items-start gap-2 rounded-lg border p-2 text-left text-sm transition-all whitespace-pre-wrap`}
+                  >
+                    {msg.message}
+                  </div>}
+                {msg.type === "status" &&
+                  <div className=" p-1.5 text-xs text-center flex flex-col max-w-[60%] mx-auto">
+                    {msg.message}
+                  </div>
+                }
                 {msg.type === "user" && (
                   <>
                     {conversation[i - 1] &&
-                    conversation[i - 1].type === "user" ? (
+                      conversation[i - 1].type === "user" ? (
                       <div className={`w-6 h-6`}></div>
                     ) : (
                       <Avatar className={`w-6 h-6 bg-gray-200`}>
@@ -166,7 +270,7 @@ export default function Chat() {
         <div className="bg-white sm:rounded-t-md border-t sm:border shadow-lg">
           <div className="p-4">
             <div className="flex flex-row gap-3 p-4 border rounded-t-md">
-              <div>
+              {/* <div>
                 <DropdownMenu>
                   <DropdownMenuTrigger className="outline-none">
                     <div className="h-8 w-8 p-0 rounded-full shadow-sm border flex items-center justify-center">
@@ -182,7 +286,7 @@ export default function Chat() {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-              </div>
+              </div> */}
               <AutosizeTextarea
                 className="flex-1 outline-none border-0"
                 placeholder="Type here ..."
@@ -192,8 +296,13 @@ export default function Chat() {
                 onKeyDown={(e) => handleEnter(e)}
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
+                disabled={!connected}
               />
-              <Button onClick={() => sendMessage()} className="h-8 w-8 p-0">
+              <Button
+                onClick={() => sendMessage()}
+                className={clsx("h-8 w-8 p-0 cursor")}
+                disabled={!connected}
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 256 256"
