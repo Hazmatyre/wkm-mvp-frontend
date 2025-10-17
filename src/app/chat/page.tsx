@@ -34,25 +34,32 @@ export default function Chat() {
   const [conversation, setConversation] = useState<Message[]>([]);
   const [connected, setConnected] = useState<boolean>(false)
   const [connecting, setConnecting] = useState<boolean>(false)
-  const [sessionId, setSessionId] = useState<string>()
-  const [agentId, setAgentId] = useState<string>()
+  const [sessionId, setSessionId] = useState<string>("")
+  const [agentId, setAgentId] = useState<string>("")
   const [client, setClient] = useState<WorkmindClient>(new WorkmindClient({
     baseUrl: "https://wm-gateway-613708618361.us-central1.run.app",
     agentId: "agents/adder.json"
   }))
 
-  // Force state update based on client
+  useEffect(() => {
+    setSessionId("")
+  }, [])
+
+  // Force state update to prevent session/agent ID from becoming stale.
   useEffect(() => {
     setSessionId(client.sessionId)
-    setAgentId(client.agentId)
+    setAgentId(client.agentId || "")
   }, [client.sessionId, client.agentId])
 
+  // async function inside useEffect to prevent side effects and weird renders.
   useEffect(() => {
     const initialise = async () => {
       if (!connecting) {
         return
       }
       try {
+        client.sessionId = sessionId || ""
+        client.agentId = agentId || "agents/adder.json"
         await client.handshake()
         addMessage({ message: "Connecting...", type: "status" });
         setConnecting(false)
@@ -133,7 +140,7 @@ export default function Chat() {
       try {
         await client.sendMessage("user_message", { text })
       } catch (err) {
-        addMessage({ message: "Failed to send message.", type: "bot" })
+        addMessage({ message: "Failed to send message.", type: "status" })
         console.error(err)
       }
     }
@@ -176,13 +183,16 @@ export default function Chat() {
               type="text"
               placeholder="Session ID"
               disabled={connected || connecting}
+              value={sessionId}
+              onChange={(e) => setSessionId(e.target.value)}
             />
             <Input
               className="w-auto max-w-60 disabled:cursor-not-allowed"
               type="text"
               placeholder="Agent ID"
-              defaultValue={"agents/adder.json"}
               disabled={connected || connecting}
+              value={agentId}
+              onChange={(e) => setAgentId(e.target.value)}
             />
             <div className="gap-x-2 flex">
               <Button
