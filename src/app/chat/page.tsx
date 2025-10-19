@@ -21,6 +21,7 @@ import Link from "next/link";
 import clsx from "clsx";
 import { Input } from "@/components/ui/input";
 import { WorkmindClient } from "@workmind/client";
+import Image from "next/image"
 
 interface Message {
   message: String;
@@ -45,7 +46,7 @@ export default function Chat() {
     setSessionId("")
   }, [])
 
-  // Force state update to prevent session/agent ID from becoming stale.
+  // Force state update to prevent session/agent ID from becoming stale on init.
   useEffect(() => {
     setSessionId(client.sessionId)
     setAgentId(client.agentId || "")
@@ -58,16 +59,20 @@ export default function Chat() {
         return
       }
       try {
-        client.sessionId = sessionId || ""
+        if (sessionId) {
+          client.sessionId = sessionId
+        }
         client.agentId = agentId || "agents/adder.json"
         await client.handshake()
         addMessage({ message: "Connecting...", type: "status" });
+        setSessionId(client.sessionId)
+        setAgentId(client.agentId || "")
         setConnecting(false)
         setConnected(true)
 
-        console.log("Session:", sessionId);
+        console.log("Session:", client.sessionId);
         addMessage({ message: "Connected! Please give the bot some time to respond.", type: "status" });
-        addMessage({ message: `Session ID: ${sessionId}`, type: "status" });
+        addMessage({ message: `Session ID: ${client.sessionId}`, type: "status" });
         console.log("Session:", client.sessionId);
         // todo: some kind of message to note the chat is connected and will reply
 
@@ -158,22 +163,8 @@ export default function Chat() {
       <div>
         <div className="bg-white py-2 flex gap-3 justify-between items-center px-3">
           <div>
-            <Link href="/">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                strokeWidth="1.5"
-                stroke="currentColor"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                <path d="M21 3l-5 9h5l-6.891 7.086a6.5 6.5 0 1 1 -8.855 -9.506l7.746 -6.58l-1 5l9 -5z" />
-                <path d="M9.5 14.5m-2.5 0a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0" />
-              </svg>
+            <Link href="/" className="block h-8">
+              <Image src="/logo.png" width={1174} height={281} alt="Workmind Logo" className="h-full w-auto"/>
             </Link>
           </div>
 
