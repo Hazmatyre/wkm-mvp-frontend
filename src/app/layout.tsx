@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 
 import { GeistSans } from "geist/font/sans";
+import { Public_Sans } from "next/font/google"
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -15,6 +16,11 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
+const publicSans = Public_Sans({
+  subsets: ['latin'],
+})
+ 
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -22,7 +28,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={GeistSans.className}>{children}</body>
+      <body className={publicSans.className}>{children}</body>
     </html>
   );
 }
