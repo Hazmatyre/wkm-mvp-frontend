@@ -22,6 +22,7 @@ import clsx from "clsx";
 import { Input } from "@/components/ui/input";
 import { WorkmindClient } from "@workmind/client";
 import Image from "next/image"
+import { Metadata } from "next";
 
 interface Message {
   message: String;
@@ -289,7 +290,7 @@ export default function Chat() {
                 </DropdownMenu>
               </div> */}
               <AutosizeTextarea
-                className="flex-1 outline-none border-0"
+                className="flex-1 outline-none border-0 resize-none"
                 placeholder="Type here ..."
                 minHeight={25}
                 maxHeight={55}
