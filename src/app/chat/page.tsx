@@ -163,9 +163,9 @@ export default function Chat() {
       <div>
         <div className="bg-white py-2 flex gap-3 justify-between items-center px-3">
           <div>
-            <Link href="/" className="block h-8">
+            <a href="https://workmind-site.gordynumberone.workers.dev" className="block h-8" target="_blank">
               <Image src="/logo.png" width={1174} height={281} alt="Workmind Logo" className="h-full w-auto"/>
-            </Link>
+            </a>
           </div>
 
           <div className="flex w-full flex-wrap gap-2">
