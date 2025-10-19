@@ -99,7 +99,7 @@ export default function Chat() {
 
     client.on("error", (err) => {
       console.error("SSE error", err);
-      addMessage({ message: "[connection error]: "+err, type: "status" });
+      addMessage({ message: "[connection error]: " + err, type: "status" });
     });
   }, []);
 
@@ -165,7 +165,7 @@ export default function Chat() {
         <div className="bg-white py-2 flex flex-wrap gap-3 justify-between items-center px-3">
           <div className="place-self-start">
             <a href="https://workmind-site.gordynumberone.workers.dev" className="block h-8" target="_blank">
-              <Image src="/logo.png" width={1174} height={281} alt="Workmind Logo" className="h-full w-auto"/>
+              <Image src="/logo.png" width={1174} height={281} alt="Workmind Logo" className="h-full w-auto" />
             </a>
           </div>
 
@@ -236,14 +236,24 @@ export default function Chat() {
                   </>
                 )}
                 {(msg.type === "bot" || msg.type === "user") &&
-                  <div
-                    className={`max-w-[60%] flex flex-col ${msg.type === "bot"
-                      ? "bg-white mr-auto"
-                      : "text-chat-bot-foreground bg-chat-bot ml-auto"
-                      } items-start gap-2 rounded-lg border p-2 text-left text-sm transition-all whitespace-pre-wrap`}
+                  <div className={`flex flex-col grow ${msg.type === "bot"
+                    ? "items-start "
+                    : "items-end "
+                    }`}
                   >
-                    {msg.message}
-                  </div>}
+                    <div
+                      className={`max-w-[60%] flex flex-col ${msg.type === "bot"
+                        ? "bg-white"
+                        : "text-chat-bot-foreground bg-chat-bot"
+                        } items-start gap-2 rounded-lg border p-2 text-left text-sm transition-all whitespace-pre-wrap`}
+                    >
+                      {msg.message}
+                    </div>
+                    <div className="text-xs mt-1 mb-2 opacity-50">
+                      {`${msg.type === "bot" ? "Agent" : "User"} ${new Intl.DateTimeFormat("en-us", {day: "numeric", month: "short", year: "numeric", hour: "numeric", minute:"numeric", hour12: true}).format(new Date(Date.now()))}`}
+                    </div>
+                  </div>
+                }
                 {msg.type === "status" &&
                   <div className=" p-1.5 text-xs text-center flex flex-col max-w-[60%] mx-auto">
                     {msg.message}
