@@ -161,14 +161,14 @@ export default function Chat() {
   return (
     <main className="h-screen flex flex-col bg-muted/50">
       <div>
-        <div className="bg-white py-2 flex gap-3 justify-between items-center px-3">
-          <div>
+        <div className="bg-white py-2 flex flex-wrap gap-3 justify-between items-center px-3">
+          <div className="place-self-start">
             <a href="https://workmind-site.gordynumberone.workers.dev" className="block h-8" target="_blank">
               <Image src="/logo.png" width={1174} height={281} alt="Workmind Logo" className="h-full w-auto"/>
             </a>
           </div>
 
-          <div className="flex w-full flex-wrap gap-2">
+          <div className="flex w-auto flex-wrap gap-2">
             <Input
               className="w-auto max-w-60 disabled:cursor-not-allowed"
               type="text"
@@ -199,8 +199,8 @@ export default function Chat() {
             </div>
           </div>
 
-          <div className="flex-1"></div>
-          <DropdownMenu>
+          <div className=""></div>
+          {/* <DropdownMenu>
             <DropdownMenuTrigger className="outline-none">
               <Avatar className="w-6 h-6 bg-gray-200">
                 <AvatarImage src="avatar/01.png" />
@@ -212,7 +212,7 @@ export default function Chat() {
               <DropdownMenuSeparator />
               <DropdownMenuItem>Change Endpoint</DropdownMenuItem>
             </DropdownMenuContent>
-          </DropdownMenu>
+          </DropdownMenu> */}
         </div>
         <div className="shrink-0 bg-border h-[1px] w-full"></div>
       </div>
