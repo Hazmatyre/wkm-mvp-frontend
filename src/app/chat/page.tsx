@@ -42,6 +42,7 @@ export default function Chat() {
     baseUrl: "https://wm-gateway-613708618361.us-central1.run.app",
     agentId: "agents/adder.json"
   }))
+  const [botIsTyping, setBotIsTyping] = useState<boolean>(false)
 
   useEffect(() => {
     setSessionId("")
@@ -78,6 +79,7 @@ export default function Chat() {
         // todo: some kind of message to note the chat is connected and will reply
 
         client.startEventStream();
+        setBotIsTyping(true)
       } catch (err) {
         console.error("Handshake failed", err);
         addMessage({ message: "Handshake failed. Check console.", type: "status" });
@@ -92,14 +94,42 @@ export default function Chat() {
   // Register on effects once.
   useEffect(() => {
     client.on("ui", (msg) => {
-      // UI events from worker activities
       const text = msg?.payload?.message;
       if (text) addMessage({ message: text, type: "bot" });
+      setBotIsTyping(false)
     });
 
     client.on("error", (err) => {
+      setBotIsTyping(false)
       console.error("SSE error", err);
       addMessage({ message: "[connection error]: " + err, type: "status" });
+    });
+    client.on("status", (status) => {
+
+      console.log(status)
+
+      // * Is the bot thinking?
+      if(
+        (status?.CurrentNode === "generate_message")
+        || (status?.CurrentNode === "extract_schema")
+        || (String(status?.CurrentNode).includes("prompt")) // e.g. prompt_and_extract_addition_numbers
+      ) {
+        setBotIsTyping(true)
+        setTimeout(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        }, 100);
+      }
+
+      // * Is the bot done?
+      if (
+        (status?.Status === "done")
+        || (status?.CurrentNode === "await_user_response")
+      ) {
+        setBotIsTyping(false)
+        setTimeout(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        }, 100);
+      }
     });
   }, []);
 
@@ -108,6 +138,7 @@ export default function Chat() {
   }
 
   const handleDisconnect = () => {
+    setBotIsTyping(false)
     client.stopEventStream()
     addMessage({ message: `Session terminated.`, type: "status" });
     console.log("Disconnecting...");
@@ -250,7 +281,7 @@ export default function Chat() {
                       {msg.message}
                     </div>
                     <div className="text-xs mt-1 mb-2 opacity-50">
-                      {`${msg.type === "bot" ? "Agent" : "User"} ${new Intl.DateTimeFormat("en-us", {day: "numeric", month: "short", year: "numeric", hour: "numeric", minute:"numeric", hour12: true}).format(new Date(Date.now()))}`}
+                      {`${msg.type === "bot" ? "Agent" : "User"} ${new Intl.DateTimeFormat("en-us", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "numeric", hour12: true }).format(new Date(Date.now()))}`}
                     </div>
                   </div>
                 }
@@ -276,6 +307,20 @@ export default function Chat() {
             );
           })}
         </div>
+        {botIsTyping &&
+          <div className="flex flex-col p-2 max-w-3xl mx-auto">
+            <div className={`flex flex-row grow items-start gap-2`}>
+              <div className={`w-6 h-6`}></div>
+              <div
+                className={`max-w-[60%] flex flex-row bg-white items-start gap-1 rounded-lg border p-2 text-left text-sm transition-all whitespace-pre-wrap`}
+              >
+                <div className="animate-bounce size-2 bg-gray-500 rounded-full ease-in-out delay-0" />
+                <div className="animate-bounce size-2 bg-gray-500 rounded-full ease-in-out delay-100" />
+                <div className="animate-bounce size-2 bg-gray-500 rounded-full ease-in-out delay-200" />
+              </div>
+            </div>
+          </div>
+        }
         <div ref={messagesEndRef} className="mb-2"></div>
       </ScrollArea>
       <div className="w-full sm:max-w-3xl mx-auto">
