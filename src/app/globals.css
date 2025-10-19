@@ -3,6 +3,20 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* @theme {
+  --text-xs: 1.125rem;
+  --text-sm: 1.25rem;
+  --text-base: 1.5rem;
+  --text-lg: 1.875rem;
+  --text-xl: 1rem;
+  --text-2xl: 1rem;
+  --text-3xl: 1rem; 
+} */
+
+html {
+  font-size: 20px;
+}
+
 @theme inline {
   --color-chat-bot: var(--primary);
   --color-chat-bot-foreground: var(--primary-foreground);
