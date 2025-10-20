@@ -126,9 +126,6 @@ export default function Chat() {
         || (status?.CurrentNode === "await_user_response")
       ) {
         setBotIsTyping(false)
-        setTimeout(() => {
-          messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-        }, 100);
       }
     });
   }, []);
@@ -168,7 +165,7 @@ export default function Chat() {
   };
 
   const sendMessage = async () => {
-    console.log("current sesssion id is: " + client.sessionId)
+    // console.log("current sesssion id is: " + client.sessionId)
     if (userInput) {
       addMessage({ message: userInput, type: "user" });
       const text = userInput.trim()
