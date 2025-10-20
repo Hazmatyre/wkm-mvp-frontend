@@ -102,7 +102,7 @@ export default function Chat() {
     client.on("error", (err) => {
       setBotIsTyping(false)
       console.error("SSE error", err);
-      addMessage({ message: "[connection error]: " + err, type: "status" });
+      addMessage({ message: "[connection error]: " + JSON.stringify(err), type: "status" });
     });
     client.on("status", (status) => {
 
