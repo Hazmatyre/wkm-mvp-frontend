@@ -20,8 +20,8 @@ html {
 @theme inline {
   --color-chat-bot: var(--primary);
   --color-chat-bot-foreground: var(--primary-foreground);
-  --color-chat-user: var(--background);
-  --color-chat-user-foreground: var(--foreground);
+  --color-chat-user: var(--secondary);
+  --color-chat-user-foreground: var(--secondary-foreground);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-public-sans);
@@ -64,27 +64,27 @@ html {
 :root {
   --radius: 0.625rem;
   --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --foreground: oklch(0.4341 0.0829 251.82);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
+  --primary: oklch(0.5613 0.1007 223.43);
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.6273 0.1462 153.62);
+  --secondary-foreground: oklch(100% 0.00011 271.152);
   --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.556 0 0);
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --input: oklch(0.5613 0.1007 223.43);
+  --ring: oklch(0.8272 0.1243 133.31);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-4: oklch(21.739% 0.0019 106.762);
   --chart-5: oklch(0.769 0.188 70.08);
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
@@ -94,6 +94,18 @@ html {
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* THEME COLOURS */
+  --brand-deftBlue: oklch(0.3258 0.0861 266.68);
+  --brand-spaceCadet: oklch(0.3258 0.0861 266.68);
+  --brand-ylnmnBlue: oklch(0.4341 0.0829 251.82);
+  --brand-cerulean: oklch(0.5613 0.1007 223.43);
+  --brand-pineGreen: oklch(0.4827 0.0815 185.79);
+  --brand-viridian: oklch(0.5707 0.11 170.36);
+  --brand-jungleGreen: oklch(0.6529 0.133 165.33);
+  --brand-shamrockGreen: oklch(0.6273 0.1462 153.62);
+  --brand-pistachio: oklch(0.8272 0.1243 133.31);
+
 }
 
 .dark {

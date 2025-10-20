@@ -27,6 +27,7 @@ import { Metadata } from "next";
 interface Message {
   message: String;
   type: "bot" | "user" | "status";
+  timestamp?: Date
 }
 
 export default function Chat() {
@@ -95,14 +96,14 @@ export default function Chat() {
   useEffect(() => {
     client.on("ui", (msg) => {
       const text = msg?.payload?.message;
-      if (text) addMessage({ message: text, type: "bot" });
+      if (text) addMessage({ message: text, type: "bot", timestamp: new Date(Date.now()) });
       setBotIsTyping(false)
     });
 
     client.on("error", (err) => {
       setBotIsTyping(false)
       console.error("SSE error", err);
-      addMessage({ message: "[connection error]: " + JSON.stringify(err), type: "status" });
+      addMessage({ message: "[connection error]: " + "Please see the console.", type: "status", timestamp: new Date(Date.now()) });
     });
     client.on("status", (status) => {
 
@@ -167,7 +168,7 @@ export default function Chat() {
   const sendMessage = async () => {
     // console.log("current sesssion id is: " + client.sessionId)
     if (userInput) {
-      addMessage({ message: userInput, type: "user" });
+      addMessage({ message: userInput, type: "user", timestamp: new Date(Date.now()) });
       const text = userInput.trim()
       setUserInput(""); // clear the textarea
 
@@ -271,14 +272,14 @@ export default function Chat() {
                   >
                     <div
                       className={`max-w-[60%] flex flex-col ${msg.type === "bot"
-                        ? "bg-white"
-                        : "text-chat-bot-foreground bg-chat-bot"
-                        } items-start gap-2 rounded-lg border p-2 text-left text-sm transition-all whitespace-pre-wrap`}
+                        ? "bg-white border-input text-foreground"
+                        : "text-chat-user-foreground bg-chat-user"
+                        } items-start gap-2 rounded-lg border p-2 text-left text-sm transition-all whitespace-pre-wrap shadow`}
                     >
                       {msg.message}
                     </div>
                     <div className="text-xs mt-1 mb-2 opacity-50">
-                      {`${msg.type === "bot" ? "Agent" : "User"} ${new Intl.DateTimeFormat("en-us", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "numeric", hour12: true }).format(new Date(Date.now()))}`}
+                      {`${msg.type === "bot" ? "Agent" : "User"} ${new Intl.DateTimeFormat("en-us", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "numeric", second: "2-digit", hour12: true }).format(msg.timestamp)}`}
                     </div>
                   </div>
                 }
@@ -309,11 +310,11 @@ export default function Chat() {
             <div className={`flex flex-row grow items-start gap-2`}>
               <div className={`w-6 h-6`}></div>
               <div
-                className={`max-w-[60%] flex flex-row bg-white items-start gap-1 rounded-lg border p-2 text-left text-sm transition-all whitespace-pre-wrap`}
+                className={`max-w-[60%] flex flex-row bg-white items-start gap-1 rounded-lg border p-2 text-left text-sm transition-all whitespace-pre-wrap border-input`}
               >
-                <div className="animate-bounce size-2 bg-gray-500 rounded-full ease-in-out delay-0" />
-                <div className="animate-bounce size-2 bg-gray-500 rounded-full ease-in-out delay-100" />
-                <div className="animate-bounce size-2 bg-gray-500 rounded-full ease-in-out delay-200" />
+                <div className="animate-bounce size-2 bg-primary rounded-full ease-in-out delay-0" />
+                <div className="animate-bounce size-2 bg-primary rounded-full ease-in-out delay-100" />
+                <div className="animate-bounce size-2 bg-primary rounded-full ease-in-out delay-200" />
               </div>
             </div>
           </div>
@@ -321,9 +322,9 @@ export default function Chat() {
         <div ref={messagesEndRef} className="mb-2"></div>
       </ScrollArea>
       <div className="w-full sm:max-w-3xl mx-auto">
-        <div className="bg-white sm:rounded-t-md border-t sm:border shadow-lg">
+        <div className=" sm:rounded-t-md border-t sm:border shadow-2xl bg-white">
           <div className="p-4">
-            <div className="flex flex-row gap-3 p-4 border rounded-t-md">
+            <div className="bg-white flex flex-row gap-3 p-4 rounded-t-md">
               {/* <div>
                 <DropdownMenu>
                   <DropdownMenuTrigger className="outline-none">
@@ -356,6 +357,7 @@ export default function Chat() {
                 onClick={() => sendMessage()}
                 className={clsx("h-8 w-8 p-0 cursor")}
                 disabled={!connected}
+                variant={"secondary"}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
