@@ -25,7 +25,7 @@ import Image from "next/image"
 import { Metadata } from "next";
 
 interface Message {
-  message: String;
+  message: string;
   type: "bot" | "user" | "status";
   timestamp?: Date
 }
