@@ -110,7 +110,7 @@ export default function Chat() {
       console.log(status)
 
       // * Is the bot thinking?
-      if(
+      if (
         (status?.CurrentNode === "generate_message")
         || (status?.CurrentNode === "extract_schema")
         || (String(status?.CurrentNode).includes("prompt")) // e.g. prompt_and_extract_addition_numbers
@@ -245,6 +245,10 @@ export default function Chat() {
           </DropdownMenu> */}
         </div>
         <div className="shrink-0 bg-border h-[1px] w-full"></div>
+        <div className="bg-green-100 flex justify-center tracking-widest text-xs p-1.5">
+          TEST ENVIRONMENT
+        </div>
+        <div className="shrink-0 bg-border h-[1px] w-full"></div>
       </div>
       <ScrollArea ref={scrollRef} className="flex-1 overflow-x-hidden">
         <div className="flex flex-col gap-1 p-2 max-w-3xl mx-auto">
@@ -372,6 +376,9 @@ export default function Chat() {
           </div>
         </div>
       </div>
+      <footer className="bg-red-50 flex justify-center text-xs p-1.5 italic border-t border-border">
+        This is a testing tool for Workmind agents and is not intended for production use.
+      </footer>
     </main>
   );
 }

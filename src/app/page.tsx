@@ -5,7 +5,7 @@ export default function Home() {
     <main className="flex flex-col min-h-screen items-center justify-center p-24">
       <div className="font-bold">
         <Link href="https://github.com/Hazmatyre/wkm-mvp-frontend" target="_blank">
-          deathg0d/next-chat
+          Workmind Test Environment
         </Link>
       </div>
       <div className="flex gap-1">
@@ -17,6 +17,7 @@ export default function Home() {
           here
         </Link>
       </div>
+      <p className="text-red-500 text-xs mt-5">This is a testing tool for Workmind agents and is not intended for production use.</p>
     </main>
   );
 }
